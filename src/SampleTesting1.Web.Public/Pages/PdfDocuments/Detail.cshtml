@@ -1,0 +1,58 @@
+@page
+@using Microsoft.Extensions.Localization
+@using SampleTesting1.Localization
+@using SampleTesting1.Web.Public.Pages.PdfDocuments
+@using Volo.CmsKit.Public.Web.Pages.CmsKit.Shared.Components.ReactionSelection
+@using Volo.CmsKit.Public.Web.Pages.CmsKit.Shared.Components.Commenting
+@model DetailModel
+@inject IStringLocalizer<SampleTesting1Resource> L
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>@Model.PdfDocument.Title</h1>
+            @if (!string.IsNullOrEmpty(Model.PdfDocument.Category))
+            {
+                <span class="badge bg-primary mb-3">@Model.PdfDocument.Category</span>
+            }
+            <p class="lead">@Model.PdfDocument.Description</p>
+            <small class="text-muted">@L["Date"]: @Model.PdfDocument.CreationTime.ToLongDateString()</small>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <embed src="/api/cms-kit/media/@Model.PdfDocument.PdfMediaId" 
+                           type="application/pdf" 
+                           width="100%" 
+                           height="800px" />
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reactions -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            @await Component.InvokeAsync(typeof(ReactionSelectionViewComponent), new
+            {
+                entityType = SampleTesting1.SampleTesting1Consts.PdfDocumentEntityType,
+                entityId = Model.PdfDocument.Id.ToString()
+            })
+        </div>
+    </div>
+    
+    <!-- Comments -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h3>@L["Comments"]</h3>
+            @await Component.InvokeAsync(typeof(CommentingViewComponent), new
+            {
+                entityType = SampleTesting1.SampleTesting1Consts.PdfDocumentEntityType,
+                entityId = Model.PdfDocument.Id.ToString()
+            })
+        </div>
+    </div>
+</div>

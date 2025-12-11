@@ -1,0 +1,120 @@
+services:
+  sampletesting1-web:
+    image: sampletesting1-web:latest
+    container_name: sampletesting1-web
+    hostname: sampletesting1-web
+    build:
+      context: ../../
+      dockerfile: src/SampleTesting1.Web/Dockerfile.local
+    environment:
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080;
+      - Kestrel__Certificates__Default__Path=/app/certs/localhost.pfx
+      - Kestrel__Certificates__Default__Password=aa0982f8-b2af-4668-ac0f-ed82a484b0bb
+      - App__SelfUrl=https://localhost:44345
+      - App__HealthCheckUrl=http://sampletesting1-web:8080/health-status
+      - AuthServer__RequireHttpsMetadata=false
+      - AuthServer__Authority=http://sampletesting1-web:8080      
+      - App__MVCPublicUrl=https://localhost:44302
+      - ConnectionStrings__Default=Data Source=sql-server;Initial Catalog=SampleTesting1;User Id=sa;Password=myPassw0rd;MultipleActiveResultSets=true;TrustServerCertificate=True;
+      - Redis__Configuration=redis
+    ports:
+      - "44345:8081"
+    depends_on:
+      sql-server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ./certs:/app/certs
+    networks:
+      - abp-network
+
+  
+
+  sampletesting1-web-public:
+    image: sampletesting1-web-public:latest
+    container_name: sampletesting1-web-public
+    build:
+      context: ../../
+      dockerfile: src/SampleTesting1.Web.Public/Dockerfile.local
+    environment:
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080;
+      - Kestrel__Certificates__Default__Path=/app/certs/localhost.pfx
+      - Kestrel__Certificates__Default__Password=aa0982f8-b2af-4668-ac0f-ed82a484b0bb
+      - App__SelfUrl=https://localhost:44302
+      - App__HealthCheckUrl=http://sampletesting1-web-public:8080/health-status
+      - AuthServer__RequireHttpsMetadata=false
+      - AuthServer__IsOnK8s=true      
+      - RemoteServices__Default__BaseUrl=http://sampletesting1-api:8080
+      - AuthServer__Authority=https://localhost:44337/
+      - AuthServer__MetaAddress=http://sampletesting1-api:8080
+      - ConnectionStrings__Default=Data Source=sql-server;Initial Catalog=SampleTesting1;User Id=sa;Password=myPassw0rd;MultipleActiveResultSets=true;TrustServerCertificate=True;
+      - Redis__Configuration=redis
+    ports:
+      - "44302:8081"
+    depends_on:
+      sql-server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ./certs:/app/certs
+    networks:
+      - abp-network  
+  
+  db-migrator:
+    image: sampletesting1-db-migrator:latest
+    container_name: db-migrator
+    build:
+      context: ../../
+      dockerfile: src/SampleTesting1.DbMigrator/Dockerfile.local
+    environment:
+      - OpenIddict__Applications__SampleTesting1_Web__RootUrl=https://localhost:44345
+      - OpenIddict__Applications__SampleTesting1_Swagger__RootUrl=https://localhost:44337
+      - OpenIddict__Applications__SampleTesting1_Web_Public__RootUrl=https://localhost:44302
+      - ConnectionStrings__Default=Data Source=sql-server;Initial Catalog=SampleTesting1;User Id=sa;Password=myPassw0rd;MultipleActiveResultSets=true;TrustServerCertificate=True;
+      - Redis__Configuration=redis
+    restart: on-failure
+    depends_on:
+      sql-server:
+        condition: service_healthy
+    networks:
+      - abp-network
+  
+  sql-server:
+    container_name: sql-server
+    image: mcr.microsoft.com/azure-sql-edge:1.0.7
+    ports:
+      - "1434:1433"
+    environment:
+      SA_PASSWORD: "myPassw0rd"
+      ACCEPT_EULA: "Y"
+    volumes:
+      - sqldata:/var/opt/mssql
+    networks:
+      - abp-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S sql-server -U sa -P "myPassw0rd" -Q "SELECT 1" -C -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - abp-network
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+
+volumes:
+  sqldata:
+    name: sampletesting1_sqldata
+networks:
+  abp-network:
+    name: sampletesting1-network
+    driver: bridge

@@ -1,0 +1,36 @@
+@page
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using SampleTesting1.Localization
+@using SampleTesting1.Permissions
+@using SampleTesting1.Web.Pages.PdfDocuments.Management
+@inject IStringLocalizer<SampleTesting1Resource> L
+@inject IAuthorizationService Authorization
+@model IndexModel
+
+@section scripts
+{
+    <abp-script src="/Pages/PdfDocuments/Management/Index.js" />
+}
+
+<abp-card>
+    <abp-card-header>
+        <abp-row>
+            <abp-column size-md="_6">
+                <abp-card-title>@L["PdfDocuments"]</abp-card-title>
+            </abp-column>
+            <abp-column size-md="_6" class="text-end">
+                @if (await Authorization.IsGrantedAsync(SampleTesting1Permissions.PdfDocuments.Create))
+                {
+                    <abp-button id="NewPdfDocumentButton"
+                                text="@L["NewPdfDocument"].Value"
+                                icon="plus"
+                                button-type="Primary"/>
+                }
+            </abp-column>
+        </abp-row>
+    </abp-card-header>
+    <abp-card-body>
+        <abp-table striped-rows="true" id="PdfDocumentsTable"></abp-table>
+    </abp-card-body>
+</abp-card>

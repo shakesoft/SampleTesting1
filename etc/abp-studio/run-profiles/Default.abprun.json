@@ -1,0 +1,47 @@
+﻿{
+  "applications": {
+    "SampleTesting1.Web.Public": {
+      "type": "dotnet-project",
+      "launchUrl": "https://localhost:44302",
+      "path": "../../../src/SampleTesting1.Web.Public/SampleTesting1.Web.Public.csproj",
+      "kubernetesService": ".*-webpublic$",
+      "healthCheckEndpoint": "/health-status",
+      "healthUiEndpoint": "/health-ui",
+      "execution": {
+        "order": 1
+      }
+    },
+    "SampleTesting1.Web": {
+      "type": "dotnet-project",
+      "launchUrl": "https://localhost:44345",
+      "path": "../../../src/SampleTesting1.Web/SampleTesting1.Web.csproj",
+      "kubernetesService": ".*-web$",
+      "healthCheckEndpoint": "/health-status",
+      "healthUiEndpoint": "/health-ui",
+      "execution": {
+        "order": 2
+      }
+    }
+  },
+  "containers": {
+    "serviceName": "SampleTesting1-Containers",
+    "files": {
+      "../../docker/containers/redis.yml": {
+      },
+    }
+  },
+  "tasks":{
+    "Initialize Solution":{
+    "type": "cli",
+    "runOnSolutionOpen": true,
+    "startCommand": "etc/scripts/initialize-solution.ps1",
+    "workingDirectory": "../../../"
+    },
+    "Migrate Database":{
+    "type": "cli",
+    "runOnSolutionOpen": false,
+    "startCommand": "etc/scripts/migrate-database.ps1",
+    "workingDirectory": "../../../"
+    }
+  }
+}
