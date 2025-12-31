@@ -31,9 +31,13 @@ namespace SampleTesting1;
     typeof(LanguageManagementApplicationModule),
     typeof(AbpGdprApplicationModule),
     typeof(CmsKitProApplicationModule),
-    typeof(AbpSettingManagementApplicationModule)
+    typeof(AbpSettingManagementApplicationModule),
+    typeof(AbpMapperlyModule)
     )]
 public class SampleTesting1ApplicationModule : AbpModule
 {
-
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        context.Services.AddMapperlyObjectMapper<SampleTesting1ApplicationModule>();
+    }
 }

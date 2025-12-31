@@ -7,15 +7,15 @@ namespace SampleTesting1.PdfDocuments
     {
         [Required]
         [StringLength(256)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
         
         [StringLength(2000)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
         
         [Required]
         public Guid PdfMediaId { get; set; }
         
         [StringLength(128)]
-        public string Category { get; set; }
+        public string? Category { get; set; }
     }
 }

@@ -26,6 +26,33 @@
 <script>
     $(function () {
         var l = abp.localization.getResource('SampleTesting1');
+        var isUploading = false;
+        var isUploaded = false;
+        
+        // Hide the auto-generated PdfMediaId textbox since we have file upload
+        $('#PdfDocument_PdfMediaId').closest('.mb-3').hide();
+        
+        // Initially disable save button
+        var $saveButton = $('.modal-footer button[type="submit"]');
+        
+        // Add validation before form submission
+        $('form').on('submit', function(e) {
+            var pdfMediaId = $('#PdfMediaIdInput').val();
+            
+            if (isUploading) {
+                e.preventDefault();
+                abp.message.warn('Please wait for the PDF upload to complete.');
+                return false;
+            }
+            
+            if (!pdfMediaId || pdfMediaId === '00000000-0000-0000-0000-000000000000') {
+                e.preventDefault();
+                abp.message.error('Please upload a PDF file before saving.');
+                return false;
+            }
+            
+            return true;
+        });
         
         $('#PdfFileInput').on('change', function (e) {
             var file = e.target.files[0];
@@ -33,23 +60,38 @@
             
             var formData = new FormData();
             formData.append('file', file);
-            formData.append('name', file.name);
+            
+            isUploading = true;
+            isUploaded = false;
+            $saveButton.prop('disabled', true);
             
             abp.message.info(l('UploadingPdf'));
             
-            // Upload to CMS Kit Media
+            // Upload to custom controller
             $.ajax({
-                url: '/api/cms-kit-admin/media/database',
+                url: '/api/app/pdf-upload',
                 type: 'POST',
                 data: formData,
                 processData: false,
                 contentType: false,
                 success: function (response) {
+                    // Update both the hidden field and the visible textbox
                     $('#PdfMediaIdInput').val(response.id);
+                    $('#PdfDocument_PdfMediaId').val(response.id);
+                    isUploading = false;
+                    isUploaded = true;
+                    $saveButton.prop('disabled', false);
                     abp.message.success(l('PdfUploadedSuccessfully'));
                 },
-                error: function () {
-                    abp.message.error(l('PdfUploadFailed'));
+                error: function (xhr) {
+                    isUploading = false;
+                    isUploaded = false;
+                    // Reset both fields to empty GUID on error
+                    $('#PdfMediaIdInput').val('00000000-0000-0000-0000-000000000000');
+                    $('#PdfDocument_PdfMediaId').val('00000000-0000-0000-0000-000000000000');
+                    $saveButton.prop('disabled', false);
+                    var errorMsg = xhr.responseJSON?.error || l('PdfUploadFailed');
+                    abp.message.error(errorMsg);
                 }
             });
         });

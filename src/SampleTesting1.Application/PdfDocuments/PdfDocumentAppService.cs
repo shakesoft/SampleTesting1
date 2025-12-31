@@ -18,15 +18,56 @@ namespace SampleTesting1.PdfDocuments
     {
         private readonly IRepository<Comment, Guid> _commentRepository;
         private readonly IRepository<UserReaction, Guid> _reactionRepository;
+        private readonly PdfDocumentToPdfDocumentDtoMapper _pdfDocumentMapper;
 
         public PdfDocumentAppService(
             IRepository<PdfDocument, Guid> repository,
             IRepository<Comment, Guid> commentRepository,
-            IRepository<UserReaction, Guid> reactionRepository)
+            IRepository<UserReaction, Guid> reactionRepository,
+            PdfDocumentToPdfDocumentDtoMapper pdfDocumentMapper)
             : base(repository)
         {
             _commentRepository = commentRepository;
             _reactionRepository = reactionRepository;
+            _pdfDocumentMapper = pdfDocumentMapper;
+        }
+
+        public override async Task<PdfDocumentDto> CreateAsync(CreateUpdatePdfDocumentDto input)
+        {
+            if (input.PdfMediaId == Guid.Empty)
+            {
+                throw new Volo.Abp.UserFriendlyException("Please upload a PDF file before saving.");
+            }
+
+            var pdfDocument = new PdfDocument(
+                GuidGenerator.Create(),
+                input.Title,
+                input.Description ?? string.Empty,
+                input.PdfMediaId,
+                input.Category,
+                CurrentTenant.Id
+            );
+
+            await Repository.InsertAsync(pdfDocument, autoSave: true);
+            return _pdfDocumentMapper.Map(pdfDocument);
+        }
+
+        public override async Task<PdfDocumentDto> UpdateAsync(Guid id, CreateUpdatePdfDocumentDto input)
+        {
+            if (input.PdfMediaId == Guid.Empty)
+            {
+                throw new Volo.Abp.UserFriendlyException("Please upload a PDF file before saving.");
+            }
+
+            var pdfDocument = await Repository.GetAsync(id);
+            
+            pdfDocument.Title = input.Title;
+            pdfDocument.Description = input.Description ?? string.Empty;
+            pdfDocument.PdfMediaId = input.PdfMediaId;
+            pdfDocument.Category = input.Category ?? string.Empty;
+
+            await Repository.UpdateAsync(pdfDocument, autoSave: true);
+            return _pdfDocumentMapper.Map(pdfDocument);
         }
 
         public async Task<PagedResultDto<PdfDocumentWithDetailsDto>> GetDetailedListAsync(PagedAndSortedResultRequestDto input)

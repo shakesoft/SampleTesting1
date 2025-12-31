@@ -62,22 +62,25 @@ public class SampleTesting1MenuContributor : IMenuContributor
             ).RequirePermissions(SampleTesting1Permissions.Dashboard.Tenant)
         );
 
-        //PDF Documents
-        context.Menu.AddItem(
-            new ApplicationMenuItem(
-                SampleTesting1Menus.PdfDocuments,
-                l["Menu:PdfDocuments"],
-                "~/PdfDocuments/Management",
-                icon: "fa fa-file-pdf-o",
-                order: 3
-            ).RequirePermissions(SampleTesting1Permissions.PdfDocuments.Default)
-        );
-
         //Saas
         context.Menu.SetSubItemOrder(SaasHostMenuNames.GroupName, 4);
     
         //CMS
         context.Menu.SetSubItemOrder(CmsKitProAdminMenus.GroupName, 4);
+        
+        //PDF Documents - nested under CMS
+        var cmsMenu = context.Menu.FindMenuItem(CmsKitProAdminMenus.GroupName);
+        if (cmsMenu != null)
+        {
+            cmsMenu.AddItem(
+                new ApplicationMenuItem(
+                    SampleTesting1Menus.PdfDocuments,
+                    l["Menu:PdfDocuments"],
+                    "~/PdfDocuments/Management",
+                    icon: "fa fa-file-pdf-o"
+                ).RequirePermissions(SampleTesting1Permissions.PdfDocuments.Default)
+            );
+        }
     
 
         //Administration

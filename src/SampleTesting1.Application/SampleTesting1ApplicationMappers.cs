@@ -4,22 +4,12 @@ using SampleTesting1.PdfDocuments;
 
 namespace SampleTesting1;
 
+/// <summary>
+/// Mapper for PdfDocument to PdfDocumentDto
+/// </summary>
 [Mapper]
-public partial class SampleTesting1ApplicationMappers
+public partial class PdfDocumentToPdfDocumentDtoMapper : MapperBase<PdfDocument, PdfDocumentDto>
 {
-    // PdfDocument mappings
-    public partial PdfDocumentDto PdfDocumentToPdfDocumentDto(PdfDocument source);
-    public partial CreateUpdatePdfDocumentDto PdfDocumentDtoToCreateUpdatePdfDocumentDto(PdfDocumentDto source);
-    public partial void CreateUpdatePdfDocumentDtoToPdfDocument(CreateUpdatePdfDocumentDto source, PdfDocument destination);
+    public override partial PdfDocumentDto Map(PdfDocument source);
+    public override partial void Map(PdfDocument source, PdfDocumentDto destination);
 }
-
-/*
- * You can add your own mappings here.
- * [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
- * public partial class SampleTesting1ApplicationMappers : MapperBase<BookDto, CreateUpdateBookDto>
- * {
- *    public override partial CreateUpdateBookDto Map(BookDto source);
- * 
- *    public override partial void Map(BookDto source, CreateUpdateBookDto destination);
- * }
- */
